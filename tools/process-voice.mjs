@@ -170,15 +170,21 @@ function process(file, outFile) {
   dry = lowpass(dry, rate, 11800);
   dry = normalizePeak(dry, 0.86);
 
-  // --- A barely-there machine shimmer, mixed under the dry voice --------------
+  // --- A parallel machine layer, mixed under the clear dry voice -------------
   const robot = new Float64Array(n);
   for (let i = 0; i < n; i += 1) {
-    const mod = 1 - 0.16 + 0.16 * Math.sin((2 * Math.PI * 48 * i) / rate);
+    const mod = 1 - 0.3 + 0.3 * Math.sin((2 * Math.PI * 52 * i) / rate);
     robot[i] = dry[i] * mod;
+  }
+  const combDelay = Math.max(1, Math.round(0.0026 * rate));
+  for (let i = combDelay; i < n; i += 1) robot[i] += robot[i - combDelay] * 0.2;
+  const levels = 4096;
+  for (let i = 0; i < n; i += 1) {
+    robot[i] = robot[i] * 0.85 + (Math.round(robot[i] * levels) / levels) * 0.15;
   }
   const mixed = new Float64Array(n);
   for (let i = 0; i < n; i += 1) {
-    mixed[i] = dry[i] * 0.94 + robot[i] * 0.06;
+    mixed[i] = dry[i] * 0.81 + robot[i] * 0.19;
   }
 
   // --- Compression + a touch of harmonic edge for a commanding read ----------

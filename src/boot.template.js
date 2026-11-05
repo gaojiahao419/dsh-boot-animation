@@ -527,6 +527,45 @@ void main() {
         g.fillRect(0, 0, 48, 48);
         return sprite;
       })();
+      const coreSprite = (() => {
+        const sprite = document.createElement('canvas');
+        sprite.width = 32;
+        sprite.height = 32;
+        const g = sprite.getContext('2d');
+        const grad = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+        grad.addColorStop(0, 'rgba(255,255,255,1)');
+        grad.addColorStop(0.2, 'rgba(248,251,255,1)');
+        grad.addColorStop(0.55, 'rgba(190,214,255,0.55)');
+        grad.addColorStop(1, 'rgba(190,214,255,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 32, 32);
+        return sprite;
+      })();
+      const starSprite = (() => {
+        const sprite = document.createElement('canvas');
+        sprite.width = 48;
+        sprite.height = 48;
+        const g = sprite.getContext('2d');
+        const glow = g.createRadialGradient(24, 24, 0, 24, 24, 24);
+        glow.addColorStop(0, 'rgba(255,255,255,0.55)');
+        glow.addColorStop(0.3, 'rgba(190,216,255,0.2)');
+        glow.addColorStop(1, 'rgba(190,216,255,0)');
+        g.fillStyle = glow;
+        g.fillRect(0, 0, 48, 48);
+        g.beginPath();
+        for (let i = 0; i < 8; i += 1) {
+          const angle = -Math.PI / 2 + i * (Math.PI / 4);
+          const radius = i % 2 === 0 ? 21 : 5;
+          const px = 24 + Math.cos(angle) * radius;
+          const py = 24 + Math.sin(angle) * radius;
+          if (i === 0) g.moveTo(px, py);
+          else g.lineTo(px, py);
+        }
+        g.closePath();
+        g.fillStyle = 'rgba(255,255,255,0.95)';
+        g.fill();
+        return sprite;
+      })();
 
       function resize() {
         const bounds = canvas.getBoundingClientRect();
@@ -555,6 +594,18 @@ void main() {
             vy: rand(-0.055, -0.008),
             size: rand(0.5, 1.9),
             alpha: rand(0.05, 0.3),
+            phase: rand(0, Math.PI * 2),
+          });
+        }
+        const bokehCount = Math.round(clamp((W * H) / 70000, 10, 22));
+        for (let i = 0; i < bokehCount; i += 1) {
+          ambient.push({
+            x: rand(0, W),
+            y: rand(0, H),
+            vx: rand(-0.02, 0.02),
+            vy: rand(-0.02, -0.004),
+            size: rand(5, 12),
+            alpha: rand(0.012, 0.04),
             phase: rand(0, Math.PI * 2),
           });
         }
@@ -623,7 +674,8 @@ void main() {
           const tx = rect.x + ((arr[idx] + rand(-0.8, 0.8)) / offW) * rect.width;
           const ty = rect.y + ((arr[idx + 1] + rand(-0.8, 0.8)) / offH) * rect.height;
           const angle = rand(0, Math.PI * 2);
-          const radius = maxDim * rand(0.55, 1.05);
+          const depth = Math.random();
+          const radius = maxDim * rand(0.55, 1.05) * (1.15 - depth * 0.3);
           const sx = cx + Math.cos(angle) * radius * 1.12;
           const sy = cy + Math.sin(angle) * radius;
           const dx = tx - sx;
@@ -636,12 +688,14 @@ void main() {
           const spriteIdx = roll < 0.66 ? 0 : roll < 0.93 ? 1 : 2;
           next.push({
             sx, sy, mx, my, tx, ty,
-            delay: rand(0, REDUCED ? 150 : 800),
-            dur: rand(REDUCED ? 700 : 1500, REDUCED ? 1000 : 2600),
-            size: rand(0.7, 2.5),
-            alpha: rand(0.65, 1),
+            delay: rand(0, REDUCED ? 150 : 800) * (1 - depth * 0.18),
+            dur: rand(REDUCED ? 700 : 1500, REDUCED ? 1000 : 2600) * (1 - depth * 0.12),
+            size: rand(0.55, 2.35) * (0.7 + depth * 0.62),
+            alpha: rand(0.55, 1) * (0.65 + depth * 0.35),
             phase: rand(0, Math.PI * 2),
             sprite: spriteIdx,
+            core: Math.random() < 0.32,
+            glint: Math.random() < 0.08,
             prevX: sx,
             prevY: sy,
             line: roll < 0.66 ? 'rgba(200,220,255,0.85)' : roll < 0.93 ? 'rgba(130,168,255,0.85)' : 'rgba(238,226,205,0.8)',
@@ -667,27 +721,6 @@ void main() {
         ctx.globalAlpha = 1;
       }
 
-      function drawRings(t) {
-        if (!rect) return;
-        const formT = skipAt ? -1 : t - TIMING.form;
-        if (formT < 0 || formT > 2000) return;
-        const centerX = rect.x + rect.width / 2;
-        const centerY = rect.y + rect.height / 2;
-        const base = Math.max(rect.width, rect.height);
-        [0, 320].forEach((delay, index) => {
-          const u = clamp((formT - delay) / 1500, 0, 1);
-          if (u <= 0 || u >= 1) return;
-          const radius = base * (0.12 + u * 0.62);
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-          ctx.strokeStyle = index === 0 ? 'rgba(210,226,255,0.9)' : 'rgba(120,158,255,0.55)';
-          ctx.lineWidth = (1 - u) * 2;
-          ctx.globalAlpha = (1 - u) * 0.6;
-          ctx.stroke();
-        });
-        ctx.globalAlpha = 1;
-      }
-
       function drawFilaments(t) {
         if (skipAt || !rect) return;
         const gatherT = t - TIMING.gather;
@@ -697,8 +730,8 @@ void main() {
         const cx = rect.x + rect.width / 2;
         const cy = rect.y + rect.height / 2;
         const maxR = Math.max(W, H) * 0.46;
-        for (let i = 0; i < 8; i += 1) {
-          const phase = (i / 8) * Math.PI * 2 + t * 0.00022;
+        for (let i = 0; i < 12; i += 1) {
+          const phase = (i / 12) * Math.PI * 2 + t * 0.00022;
           const radius = maxR * (1.06 - k * 0.34);
           const x0 = cx + Math.cos(phase) * radius * 1.12;
           const y0 = cy + Math.sin(phase) * radius;
@@ -707,12 +740,17 @@ void main() {
           const y1 = cy + Math.sin(targetAngle) * maxR * 0.16;
           const mx = (x0 + x1) / 2 + Math.cos(phase + 0.7) * maxR * 0.2;
           const my = (y0 + y1) / 2 + Math.sin(phase + 0.7) * maxR * 0.2;
+          const alpha = 0.055 + 0.11 * (1 - k);
           ctx.beginPath();
           ctx.moveTo(x0, y0);
           ctx.quadraticCurveTo(mx, my, x1, y1);
-          ctx.strokeStyle = 'rgba(205,224,255,' + (0.05 + 0.075 * (1 - k)).toFixed(3) + ')';
-          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = 'rgba(205,224,255,' + alpha.toFixed(3) + ')';
+          ctx.lineWidth = 1.5;
           ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x1, y1, 1.6 + 1.4 * (1 - k), 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(225,238,255,' + (alpha * 1.4).toFixed(3) + ')';
+          ctx.fill();
         }
       }
 
@@ -720,7 +758,7 @@ void main() {
         if (!rect || !outline.length) return;
         const cx = rect.x + rect.width / 2;
         const cy = rect.y + rect.height / 2;
-        const count = REDUCED ? 120 : 260;
+        const count = REDUCED ? 160 : 360;
         for (let i = 0; i < count; i += 1) {
           const edgePoint = outline[Math.floor(Math.random() * outline.length)];
           const angle = Math.atan2(edgePoint.y - cy, edgePoint.x - cx) + rand(-0.65, 0.65);
@@ -777,6 +815,7 @@ void main() {
               let x;
               let y;
               let alpha = 0;
+              let progress = 0;
               if (gatherT <= 0) {
                 const k = clamp(t / TIMING.gather, 0, 1);
                 x = p.sx + Math.cos(p.phase + t * 0.0004) * 10;
@@ -785,6 +824,7 @@ void main() {
               } else {
                 const local = gatherT - p.delay;
                 const u = clamp(local / p.dur, 0, 1);
+                progress = u;
                 if (u <= 0) {
                   x = p.sx;
                   y = p.sy;
@@ -795,6 +835,10 @@ void main() {
                   y = quadPoint(p.sy, p.my, p.ty, e);
                   x += Math.sin(t * 0.0022 + p.phase) * 2.4 * (1 - e);
                   y += Math.cos(t * 0.0019 + p.phase) * 2.4 * (1 - e);
+                  if (u > 0.95) {
+                    x += Math.sin(t * 0.008 + p.phase) * 0.9;
+                    y += Math.cos(t * 0.007 + p.phase) * 0.9;
+                  }
                   alpha = 0.4 + 0.6 * easeOutCubic(u);
                   if (u >= 1) alpha *= 0.92 + 0.08 * Math.sin(t * 0.004 + p.phase);
                 }
@@ -805,10 +849,10 @@ void main() {
               const dx = x - p.prevX;
               const dy = y - p.prevY;
               const dist = Math.hypot(dx, dy);
-              if (dist > 0.6 && dist < 180) {
-                ctx.globalAlpha = alpha * 0.3;
+              if (dist > 0.6 && dist < 200) {
+                ctx.globalAlpha = alpha * 0.36;
                 ctx.strokeStyle = p.line;
-                ctx.lineWidth = p.size * 0.75;
+                ctx.lineWidth = p.size * 0.7;
                 ctx.beginPath();
                 ctx.moveTo(p.prevX, p.prevY);
                 ctx.lineTo(x, y);
@@ -816,13 +860,23 @@ void main() {
               }
               p.prevX = x;
               p.prevY = y;
-              const size = p.size * (REDUCED ? 3.8 : 5.6);
+              const size = p.size * (REDUCED ? 4.2 : 6.2);
               ctx.globalAlpha = alpha;
               ctx.drawImage(sprites[p.sprite], x - size / 2, y - size / 2, size, size);
+              if (p.core) {
+                const coreSize = Math.max(1.4, p.size * 2.2);
+                ctx.globalAlpha = alpha * 0.9;
+                ctx.drawImage(coreSprite, x - coreSize / 2, y - coreSize / 2, coreSize, coreSize);
+              }
+              if (p.glint && progress > 0.5) {
+                const twinkle = 0.55 + 0.45 * Math.sin(t * 0.012 + p.phase * 2.3);
+                const starSize = 5 + p.size * 2.6;
+                ctx.globalAlpha = alpha * 0.8 * twinkle;
+                ctx.drawImage(starSprite, x - starSize / 2, y - starSize / 2, starSize, starSize);
+              }
             }
             ctx.globalAlpha = 1;
           }
-          drawRings(t);
         }
         drawBurst(t);
         ctx.globalCompositeOperation = 'source-over';
@@ -1119,20 +1173,6 @@ body > *:not(#root) { display: none !important; }
   pointer-events: none;
 }
 .dsh-boot[data-phase="form"] .dsh-boot-flash { animation: dshBootFlash 1.7s ease-out forwards; }
-.dsh-boot-ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 12%;
-  aspect-ratio: 1;
-  border: 1px solid rgba(206, 224, 255, 0.85);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0.2);
-  opacity: 0;
-  box-shadow: 0 0 24px rgba(140, 176, 255, 0.65), inset 0 0 18px rgba(140, 176, 255, 0.35);
-  pointer-events: none;
-}
-.dsh-boot[data-phase="form"] .dsh-boot-ring { animation: dshBootRing 2.2s cubic-bezier(0.16, 0.8, 0.3, 1) forwards; }
 .dsh-boot-sparks {
   position: absolute;
   inset: -9%;
@@ -1457,11 +1497,6 @@ body > *:not(#root) { display: none !important; }
   0% { opacity: 0; transform: scale(0.35); }
   14% { opacity: 0.92; }
   100% { opacity: 0; transform: scale(1.35); }
-}
-@keyframes dshBootRing {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
-  12% { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(6.4); }
 }
 @keyframes dshBootSheen {
   0% { background-position: 0% 50%; }
@@ -1910,7 +1945,6 @@ body > *:not(#root) { display: none !important; }
               h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-stroke', fill: 'none', strokeWidth: 0.09, opacity: 0.9 }),
             ),
             h('div', { className: 'dsh-boot-flash', 'aria-hidden': true }),
-            h('div', { className: 'dsh-boot-ring', 'aria-hidden': true }),
             h('div', { className: 'dsh-boot-sparks', 'aria-hidden': true },
               Array.from({ length: 10 }, (_, index) => h('i', { key: index })),
             ),
