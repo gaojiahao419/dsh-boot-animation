@@ -22,7 +22,7 @@ window.__ModuleLoader__.load({
       gather: 900,
       welcome: 1050,
       form: 4800,
-      reveal: 6600,
+      reveal: 7000,
       tagline: 8100,
       ready: 11200,
     };
@@ -1108,8 +1108,8 @@ body > *:not(#root) { display: none !important; }
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  -webkit-mask-image: radial-gradient(circle at center, #000 0%, #000 44%, rgba(0, 0, 0, 0) 72%);
-  mask-image: radial-gradient(circle at center, #000 0%, #000 44%, rgba(0, 0, 0, 0) 72%);
+  -webkit-mask-image: radial-gradient(circle at center, #000 0%, #000 50%, rgba(0, 0, 0, 0) 68%);
+  mask-image: radial-gradient(circle at center, #000 0%, #000 50%, rgba(0, 0, 0, 0) 68%);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: 50% 50%;
@@ -1131,13 +1131,13 @@ body > *:not(#root) { display: none !important; }
 .dsh-boot-mono-layer .dsh-boot-whale-stroke { stroke: rgba(255, 255, 255, 0.82); }
 .dsh-boot[data-phase="form"] .dsh-boot-mono-layer {
   opacity: 1;
-  animation: dshBootMonoReveal 1.6s cubic-bezier(0.22, 0.7, 0.2, 1) 0.08s forwards;
+  animation: dshBootMonoReveal 2.1s cubic-bezier(0.35, 0, 0.25, 1) 0.05s forwards;
 }
 .dsh-boot[data-phase="reveal"] .dsh-boot-mono-layer,
 .dsh-boot[data-phase="ready"] .dsh-boot-mono-layer {
   opacity: 1;
-  -webkit-mask-size: 300% 300%;
-  mask-size: 300% 300%;
+  -webkit-mask-size: 320% 320%;
+  mask-size: 320% 320%;
 }
 .dsh-boot-lens-clone .dsh-boot-whale-color { opacity: 0; }
 .dsh-boot-lens-clone .dsh-boot-whale-mono { opacity: 1; }
@@ -1528,7 +1528,7 @@ body > *:not(#root) { display: none !important; }
 }
 @keyframes dshBootMonoReveal {
   0% { -webkit-mask-size: 0% 0%; mask-size: 0% 0%; }
-  100% { -webkit-mask-size: 300% 300%; mask-size: 300% 300%; }
+  100% { -webkit-mask-size: 320% 320%; mask-size: 320% 320%; }
 }
 @keyframes dshBootSheen {
   0% { background-position: 0% 50%; }
