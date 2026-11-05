@@ -1192,15 +1192,6 @@ body > *:not(#root) { display: none !important; }
 .dsh-boot[data-phase="ready"] .dsh-boot-whale {
   animation: dshBootWhaleFloat 7s ease-in-out infinite;
 }
-.dsh-boot-flash {
-  position: absolute;
-  inset: -55%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(238, 244, 255, 0.95) 0%, rgba(166, 194, 255, 0.5) 20%, rgba(77, 107, 254, 0) 62%);
-  opacity: 0;
-  pointer-events: none;
-}
-.dsh-boot[data-phase="form"] .dsh-boot-flash { animation: dshBootFlash 1.7s ease-out forwards; }
 .dsh-boot-sparks {
   position: absolute;
   inset: -9%;
@@ -1331,21 +1322,48 @@ body > *:not(#root) { display: none !important; }
   text-shadow: none;
   white-space: nowrap;
 }
-.dsh-boot-title::after {
-  content: "";
+.dsh-boot-title-wrap {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
+}
+.dsh-boot-title-fx {
   position: absolute;
-  top: -18%;
-  bottom: -18%;
   left: 0;
-  width: 26%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.82) 0%, rgba(196, 220, 255, 0.34) 40%, rgba(196, 220, 255, 0) 72%);
-  mix-blend-mode: screen;
+  top: 20px;
+  margin: 0;
+  width: 100%;
   opacity: 0;
   pointer-events: none;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  -webkit-mask-image: linear-gradient(100deg, transparent 0%, transparent 38%, rgba(0, 0, 0, 0.25) 45%, #000 50%, rgba(0, 0, 0, 0.25) 55%, transparent 62%, transparent 100%);
+  mask-image: linear-gradient(100deg, transparent 0%, transparent 38%, rgba(0, 0, 0, 0.25) 45%, #000 50%, rgba(0, 0, 0, 0.25) 55%, transparent 62%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+  mix-blend-mode: screen;
+  filter: brightness(1.35) drop-shadow(0 0 12px rgba(205, 230, 255, 0.75));
+  white-space: nowrap;
 }
-.dsh-boot[data-phase="reveal"] .dsh-boot-title::after {
-  animation: dshBootTextSweep 2.7s ease-in-out 0.15s both;
+.dsh-boot-title-fx .dsh-boot-ch {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  text-shadow: none;
 }
+.dsh-boot[data-phase="reveal"] .dsh-boot-title-fx {
+  opacity: 1;
+  animation: dshBootTextMap 2.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+}
+.dsh-boot[data-phase="reveal"] .dsh-boot-title-fx .dsh-boot-ch {
+  animation: dshBootCharRise 1.6s cubic-bezier(0.16, 0.84, 0.24, 1) both;
+  animation-delay: calc(var(--i) * 150ms + 300ms);
+}
+.dsh-boot[data-phase="ready"] .dsh-boot-title-fx { opacity: 0; }
 .dsh-boot-ch {
   display: inline-block;
   opacity: 0;
@@ -1521,11 +1539,6 @@ body > *:not(#root) { display: none !important; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
 }
-@keyframes dshBootFlash {
-  0% { opacity: 0; transform: scale(0.35); }
-  14% { opacity: 0.92; }
-  100% { opacity: 0; transform: scale(1.35); }
-}
 @keyframes dshBootMonoReveal {
   0% { -webkit-mask-size: 0% 0%; mask-size: 0% 0%; }
   100% { -webkit-mask-size: 320% 320%; mask-size: 320% 320%; }
@@ -1569,11 +1582,16 @@ body > *:not(#root) { display: none !important; }
     text-shadow: 0 0 0 rgba(255, 255, 255, 0);
   }
 }
-@keyframes dshBootTextSweep {
-  0% { opacity: 0; transform: translateX(-120%); }
-  14% { opacity: 1; }
-  82% { opacity: 0.65; }
-  100% { opacity: 0; transform: translateX(440%); }
+@keyframes dshBootTextMap {
+  0% { -webkit-mask-position: 100% 0; mask-position: 100% 0; opacity: 0; }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { -webkit-mask-position: 0% 0; mask-position: 0% 0; opacity: 0; }
+}
+@keyframes dshBootCharRise {
+  0% { opacity: 0; transform: translateY(22px); }
+  30% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 @keyframes dshBootWipe {
   0% { opacity: 0; }
@@ -1604,6 +1622,7 @@ body > *:not(#root) { display: none !important; }
     letter-spacing: 0.06em;
     margin-top: 14px;
   }
+  .dsh-boot-title-fx { top: 14px; }
   .dsh-boot-tagline-rule { width: 0; margin-top: 20px; }
   .dsh-boot[data-phase="reveal"] .dsh-boot-tagline-rule,
   .dsh-boot[data-phase="ready"] .dsh-boot-tagline-rule { width: min(340px, 68vw); }
@@ -1988,7 +2007,6 @@ body > *:not(#root) { display: none !important; }
                 h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-stroke dsh-boot-whale-stroke-overlay', fill: 'none', strokeWidth: 0.09, opacity: 0.9 }),
               ),
             ),
-            h('div', { className: 'dsh-boot-flash', 'aria-hidden': true }),
             h('div', { className: 'dsh-boot-sparks', 'aria-hidden': true },
               Array.from({ length: 10 }, (_, index) => h('i', { key: index })),
             ),
@@ -2003,13 +2021,22 @@ body > *:not(#root) { display: none !important; }
 
         h('div', { key: 'tagline', className: 'dsh-boot-tagline', ref: taglineRef },
           h('div', { className: 'dsh-boot-eyebrow' }, 'DEEPSEEK HARNESS'),
-          h('h1', { className: 'dsh-boot-title', 'aria-label': TITLE },
-            TITLE.split('').map((ch, index) => h('span', {
-              key: index,
-              className: 'dsh-boot-ch',
-              'aria-hidden': true,
-              style: { '--i': index },
-            }, ch)),
+          h('div', { className: 'dsh-boot-title-wrap' },
+            h('h1', { className: 'dsh-boot-title', 'aria-label': TITLE },
+              TITLE.split('').map((ch, index) => h('span', {
+                key: index,
+                className: 'dsh-boot-ch',
+                'aria-hidden': true,
+                style: { '--i': index },
+              }, ch)),
+            ),
+            h('h1', { className: 'dsh-boot-title dsh-boot-title-fx', 'aria-hidden': true },
+              TITLE.split('').map((ch, index) => h('span', {
+                key: index,
+                className: 'dsh-boot-ch',
+                style: { '--i': index },
+              }, ch)),
+            ),
           ),
           h('div', { className: 'dsh-boot-tagline-rule', 'aria-hidden': true }),
           h('div', { className: 'dsh-boot-tagline-foot' }, 'EXPLORE THE UNDISCOVERED'),

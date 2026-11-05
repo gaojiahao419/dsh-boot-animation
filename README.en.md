@@ -16,8 +16,8 @@ Monochrome spreading from an interior point:
 - WebGL2 fluid background inspired by the DeepSeek Harness marketing page.
 - Thousands of particles sampled from the official whale SVG, with depth-based size/brightness, bright cores, star glints, floating dust, energy filaments and glowing nodes, plus a solidification burst.
 - Two Chinese voice lines with a separate machine layer (ring modulation, short comb and slight bit reduction) for a mechanical timbre without losing intelligibility, plus short UI sound effects.
-- After solidification the whale and title become monochrome while the background keeps its color; the whale's color spreads outward from one interior point, with no ring or box frame.
-- Characters appear slowly, each with a white glow and a left-to-right light sweep; the glow ends when the text is complete.
+- After solidification the whale and title become monochrome while the background keeps its color; the whale's color spreads outward from one interior point, with no ring, box or outward-expanding halo.
+- Characters appear slowly, each with a white glow; a left-to-right light sweep is mapped onto the glyphs themselves (only the strokes light up) and ends when the text is complete.
 - After the text completes, hovering the whale or title opens a compact 160 px 2× circular magnifier around the cursor.
 - Click anywhere or press Enter to leave the animation and enter the Harness workspace.
 
