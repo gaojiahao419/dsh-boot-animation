@@ -1100,19 +1100,47 @@ body > *:not(#root) { display: none !important; }
   align-items: center;
   justify-content: center;
 }
-.dsh-boot-whale-color,
-.dsh-boot-whale-mono { transition: opacity 1.8s ease; }
+.dsh-boot-whale-color { opacity: 1; }
 .dsh-boot-whale-mono { opacity: 0; }
 .dsh-boot-whale-stroke { stroke: rgba(166, 194, 255, 0.55); transition: stroke 1.6s ease; }
-.dsh-boot[data-phase="form"] .dsh-boot-whale-color,
-.dsh-boot[data-phase="reveal"] .dsh-boot-whale-color,
-.dsh-boot[data-phase="ready"] .dsh-boot-whale-color { opacity: 0; }
-.dsh-boot[data-phase="form"] .dsh-boot-whale-mono,
-.dsh-boot[data-phase="reveal"] .dsh-boot-whale-mono,
-.dsh-boot[data-phase="ready"] .dsh-boot-whale-mono { opacity: 1; }
-.dsh-boot[data-phase="form"] .dsh-boot-whale-stroke,
-.dsh-boot[data-phase="reveal"] .dsh-boot-whale-stroke,
-.dsh-boot[data-phase="ready"] .dsh-boot-whale-stroke { stroke: rgba(255, 255, 255, 0.82); }
+.dsh-boot-mono-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at center, #000 0%, #000 44%, rgba(0, 0, 0, 0) 72%);
+  mask-image: radial-gradient(circle at center, #000 0%, #000 44%, rgba(0, 0, 0, 0) 72%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 50% 50%;
+  mask-position: 50% 50%;
+  -webkit-mask-size: 0% 0%;
+  mask-size: 0% 0%;
+}
+.dsh-boot-whale-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+.dsh-boot-mono-layer .dsh-boot-whale-mono { opacity: 1; }
+.dsh-boot-mono-layer .dsh-boot-whale-stroke { stroke: rgba(255, 255, 255, 0.82); }
+.dsh-boot[data-phase="form"] .dsh-boot-mono-layer {
+  opacity: 1;
+  animation: dshBootMonoReveal 1.6s cubic-bezier(0.22, 0.7, 0.2, 1) 0.08s forwards;
+}
+.dsh-boot[data-phase="reveal"] .dsh-boot-mono-layer,
+.dsh-boot[data-phase="ready"] .dsh-boot-mono-layer {
+  opacity: 1;
+  -webkit-mask-size: 300% 300%;
+  mask-size: 300% 300%;
+}
+.dsh-boot-lens-clone .dsh-boot-whale-color { opacity: 0; }
+.dsh-boot-lens-clone .dsh-boot-whale-mono { opacity: 1; }
 .dsh-boot-aurora {
   position: absolute;
   left: 50%;
@@ -1497,6 +1525,10 @@ body > *:not(#root) { display: none !important; }
   0% { opacity: 0; transform: scale(0.35); }
   14% { opacity: 0.92; }
   100% { opacity: 0; transform: scale(1.35); }
+}
+@keyframes dshBootMonoReveal {
+  0% { -webkit-mask-size: 0% 0%; mask-size: 0% 0%; }
+  100% { -webkit-mask-size: 300% 300%; mask-size: 300% 300%; }
 }
 @keyframes dshBootSheen {
   0% { background-position: 0% 50%; }
@@ -1926,23 +1958,35 @@ body > *:not(#root) { display: none !important; }
                   h('stop', { offset: '72%', stopColor: '#cfe0ff' }),
                   h('stop', { offset: '100%', stopColor: '#f3f8ff' }),
                 ),
-                h('linearGradient', {
-                  id: 'dshBootWhaleMono',
-                  x1: '0.163',
-                  y1: '20',
-                  x2: '26.5',
-                  y2: '4',
-                  gradientUnits: 'userSpaceOnUse',
-                },
-                  h('stop', { offset: '0%', stopColor: '#8d8d8d' }),
-                  h('stop', { offset: '34%', stopColor: '#d6d6d6' }),
-                  h('stop', { offset: '70%', stopColor: '#ffffff' }),
-                  h('stop', { offset: '100%', stopColor: '#f4f4f4' }),
-                ),
               ),
               h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-color', fill: 'url(#dshBootWhaleFill)' }),
-              h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-mono', fill: 'url(#dshBootWhaleMono)' }),
               h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-stroke', fill: 'none', strokeWidth: 0.09, opacity: 0.9 }),
+            ),
+            h('div', { className: 'dsh-boot-mono-layer', 'aria-hidden': true },
+              h('svg', {
+                className: 'dsh-boot-whale dsh-boot-whale-overlay',
+                viewBox: WHALE_VIEWBOX,
+                'aria-hidden': true,
+                focusable: false,
+              },
+                h('defs', null,
+                  h('linearGradient', {
+                    id: 'dshBootWhaleMonoB',
+                    x1: '0.163',
+                    y1: '20',
+                    x2: '26.5',
+                    y2: '4',
+                    gradientUnits: 'userSpaceOnUse',
+                  },
+                    h('stop', { offset: '0%', stopColor: '#8d8d8d' }),
+                    h('stop', { offset: '34%', stopColor: '#d6d6d6' }),
+                    h('stop', { offset: '70%', stopColor: '#ffffff' }),
+                    h('stop', { offset: '100%', stopColor: '#f4f4f4' }),
+                  ),
+                ),
+                h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-mono', fill: 'url(#dshBootWhaleMonoB)' }),
+                h('path', { d: WHALE_PATH, className: 'dsh-boot-whale-stroke dsh-boot-whale-stroke-overlay', fill: 'none', strokeWidth: 0.09, opacity: 0.9 }),
+              ),
             ),
             h('div', { className: 'dsh-boot-flash', 'aria-hidden': true }),
             h('div', { className: 'dsh-boot-sparks', 'aria-hidden': true },
